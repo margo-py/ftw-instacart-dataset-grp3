@@ -1,0 +1,39 @@
+version: 2
+
+models:
+  - name: mpg_standardized
+    description: "Standardized Auto MPG (typed + trimmed) loaded from raw.autompg___cars"
+    columns:
+      - name: mpg
+        description: "Miles per gallon"
+        tests:
+          - not_null
+
+      - name: cylinders
+        description: "Cylinder count"
+        tests:
+          - not_null
+          - accepted_values:
+              values: [3, 4, 5, 6, 8]
+
+      - name: displacement
+        tests: [not_null]
+
+      - name: weight
+        tests: [not_null]
+
+      - name: acceleration
+        tests: [not_null]
+
+      - name: model_year
+        tests: [not_null]
+
+      - name: origin
+        description: "Country of origin"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ["usa", "europe", "japan"]
+
+      - name: make
+        description: "Vehicle make/model (string)"

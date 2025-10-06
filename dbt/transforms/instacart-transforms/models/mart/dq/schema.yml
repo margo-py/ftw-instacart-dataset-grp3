@@ -1,0 +1,31 @@
+version: 2
+
+models:
+  - name: dq_mpg_summary
+    description: "DQ KPIs derived from clean MPG model vs raw source (demo-friendly)."
+    columns:
+      - name: row_count_raw
+        description: "Total rows in raw source table"
+      - name: row_count_clean
+        description: "Total rows in clean model"
+      - name: dropped_rows
+        description: "raw minus clean (proxy for filtered rows)"
+      - name: pct_null_horsepower
+        description: "% of rows with NULL horsepower in clean"
+      - name: invalid_cylinders
+        description: "Rows where cylinders not in {3,4,5,6,8}"
+      - name: invalid_origin
+        description: "Rows where origin not in {usa,europe,japan}"
+      - name: nonpositive_mpg
+        description: "Rows where mpg <= 0"
+      - name: nonpositive_displacement
+        description: "Rows where displacement <= 0"
+      - name: nonpositive_weight
+        description: "Rows where weight <= 0"
+      - name: nonpositive_acceleration
+        description: "Rows where acceleration <= 0"
+      - name: out_of_range_model_year
+        description: "Rows where model_year not in [70..82]"
+
+  - name: dq_mpg_anomalies
+    description: "Row-level drilldown of records violating simple DQ rules."

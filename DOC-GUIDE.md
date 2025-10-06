@@ -1,9 +1,5 @@
-# 📝 Beginner Data Engineer Documentation & Presentation Guide
+# 📝 Instacart Dataset Group 3 
 
-This guide is for documenting and presenting your group’s **dimensional modeling exercise**.  
-Follow the structure below, fill in your team’s work, and use it as both internal documentation and a final presentation outline.  
-
----
 
 ## 1. Project Overview
 

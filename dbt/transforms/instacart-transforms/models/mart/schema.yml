@@ -1,0 +1,15 @@
+version: 2
+
+models:
+  - name: cylinders_by_origin
+    description: "Mart: average cylinders and row counts by origin"
+    columns:
+      - name: origin
+        tests:
+          - not_null
+          - accepted_values:
+              values: ["usa", "europe", "japan"]
+      - name: avg_cylinders
+        description: "Average cylinders by origin"
+      - name: n
+        description: "Rowcount by origin"
