@@ -1,4 +1,4 @@
-name: "ex_01_mpg"
+name: "instacart"
 version: "1.0"
 config-version: 2
 
@@ -7,7 +7,7 @@ model-paths: ["models"]
 macro-paths: ["macros"]  
 
 models:
-  ex_01_mpg:
+  instacart-transforms:
     clean:
       +schema: clean
       +materialized: table

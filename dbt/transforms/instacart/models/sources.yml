@@ -1,0 +1,12 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: raw
+    tables:
+      - name: raw___insta_aisles
+      - name: raw___insta_departments
+      - name: raw___insta_order_products_prior
+      - name: raw___insta_order_products_train
+      - name: raw___insta_orders
+      - name: raw___insta_products
