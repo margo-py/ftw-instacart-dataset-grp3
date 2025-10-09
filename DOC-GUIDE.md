@@ -12,7 +12,7 @@
   Transform the normalized Instacart dataset (OLTP-style) into a **dimensional star schema** for analytics — applying dbt for data cleaning, modeling, and testing, and generating documentation for BI use.
 
 * **Team Setup:**
-  Group 3 — collaborative setup led by **@Mikay**, with members **Royce**, **Pau**, **Marj**, and **Bianca**.
+  Group 3 — collaborative setup, with members **Mikay**, **Royce**, **Pau**, **Marj**, and **Bianca**.
   Work was done both individually and collaboratively with async updates via Slack and GitHub.
 
 * **Environment Setup:**
