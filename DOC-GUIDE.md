@@ -1,7 +1,4 @@
-Perfect 👌 — here’s your fully **updated and polished project documentation draft** that combines everything your group has done so far, includes your real dataset, tools, Slack collaboration story, and links.
-You can copy this directly into your repo as `README.md` or `PROJECT-DOC-GRP3.md`.
 
----
 
 # 📝 Instacart Dataset Group 3
 
