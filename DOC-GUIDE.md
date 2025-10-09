@@ -1,115 +1,168 @@
-# 📝 Instacart Dataset Group 3 
+Perfect 👌 — here’s your fully **updated and polished project documentation draft** that combines everything your group has done so far, includes your real dataset, tools, Slack collaboration story, and links.
+You can copy this directly into your repo as `README.md` or `PROJECT-DOC-GRP3.md`.
 
+---
+
+# 📝 Instacart Dataset Group 3
 
 ## 1. Project Overview
 
-- **Dataset Used:**  
-  *(Briefly describe the dataset and domain — e.g., Chinook music store, OULAD education dataset, or IMDb entertainment dataset.)*  
+* **Dataset Used:**
+  [Instacart Market Basket Analysis (Kaggle)](https://www.kaggle.com/datasets/psparks/instacart-market-basket-analysis)
+  The dataset contains anonymized customer orders, products, aisles, and departments from Instacart’s online grocery platform.
 
-- **Goal of the Exercise:**  
-  *(What was the objective? Example: transform OLTP schema into dimensional star schema for analytics.)*  
+* **Goal of the Exercise:**
+  Transform the normalized Instacart dataset (OLTP-style) into a **dimensional star schema** for analytics — applying dbt for data cleaning, modeling, and testing, and generating documentation for BI use.
 
-- **Team Setup:**  
-  *(State if you worked individually, as a group, or both. Mention collaboration style.)*  
+* **Team Setup:**
+  Group 3 — collaborative setup led by **@Mikay**, with members **Royce**, **Pau**, **Marj**, and **Bianca**.
+  Work was done both individually and collaboratively with async updates via Slack and GitHub.
 
-- **Environment Setup:**  
-  *(Describe your environment — local vs remote, individual vs shared instances. Example: Docker containers on a shared VM + local laptops.)*  
+* **Environment Setup:**
+
+  * Development and testing on **Dockerized local environments**
+  * Shared **ClickHouse** database
+  * dbt project stored and versioned in **GitHub**
+  * Visualization in **Metabase**
 
 ---
 
 ## 2. Architecture & Workflow
 
-- **Pipeline Flow:**  
-  *(Diagram or describe: raw → clean → mart → BI.)*  
+* **Pipeline Flow:**
 
-- **Tools Used:**  
-  - Ingestion: `dlt`  
-  - Modeling: `dbt`  
-  - Visualization: `Metabase`  
-  *(Add others if used.)*  
+  ```
+  Raw (Bronze) -> Clean (Silver) -> Mart (Gold) -> Metabase Dashboards
+  ```
 
-- **Medallion Architecture Application:**  
-  - **Bronze (Raw):** Initial ingestion of source data  
-  - **Silver (Clean):** Cleaning, type casting, handling missing values  
-  - **Gold (Mart):** Business-ready star schema for BI  
+* **Tools Used:**
 
-*(Insert diagram or screenshot here if possible.)*  
+  * Ingestion: `dlt`
+  * Modeling: `dbt`
+  * Visualization: `Metabase`
+  * Database: `ClickHouse`
+  * Documentation & Testing: `dbt docs`, `dbt tests`, `DBeaver`, `dbdiagram`
+
+* **Medallion Architecture Application:**
+
+  * **Bronze (Raw):** Data loaded directly from Kaggle CSVs into ClickHouse (`raw__insta_*` tables)
+  * **Silver (Clean):** Data cleaned and standardized via dbt staging models (`stg_grp3_instacart_*`)
+  * **Gold (Mart):** Star-schema models for analysis (`fact_` and `dim_` tables)
 
 ---
 
 ## 3. Modeling Process
 
-- **Source Structure (Normalized):**  
-  *(Describe how the original tables were structured — 3NF, relationships, etc.)*  
+* **Source Structure (Normalized):**
+  The raw Instacart dataset consists of multiple related tables (orders, order_products, products, aisles, departments) with primary/foreign keys following 3NF design.
 
-- **Star Schema Design:**  
-  - Fact Tables: *(e.g., FactSales, FactAssessment, FactRatings)*  
-  - Dimension Tables: *(e.g., Customer, Date, Genre, Student, Demographics, Title, Person)*  
+* **Star Schema Design:**
 
-- **Challenges / Tradeoffs:**  
-  *(E.g., handling missing data, many-to-many joins, exploding arrays, performance considerations.)*  
+  * **Fact Tables:**
+
+    * `grp3_instacart_fact_orders`
+    * `grp3_instacart_fact_order_products`
+  * **Dimension Tables:**
+
+    * `grp3_instacart_dim_users`
+    * `grp3_instacart_dim_products`
+    * `grp3_instacart_dim_aisles`
+    * `grp3_instacart_dim_departments`
+    * `grp3_instacart_dim_time`
+
+* **Challenges / Tradeoffs:**
+
+  * Handling missing `days_since_prior_order` values
+  * Ensuring key consistency between `order_products_prior` and `order_products_train`
+  * Creating correct primary/foreign key mappings in ClickHouse via dbt
+  * Normalizing redundant user and order-level data for clean joins
 
 ---
 
 ## 4. Collaboration & Setup
 
-- **Task Splitting:**  
-  *(How the team divided ingestion, modeling, BI dashboards, documentation.)*  
+* **Task Splitting:**
 
-- **Shared vs Local Work:**  
-  *(Issues faced with sync conflicts, version control, DB connections, etc.)*  
+  * Mikay — Coordination, data cleaning, dbt documentation setup
+  * Royce — Fact & dimension modeling, data testing integration
+  * Pau — Data cleaning & validation
+  * Marj — Schema review & Metabase visualization
+  * Bianca — Table cleaning and joins for product dimension
 
-- **Best Practices Learned:**  
-  *(E.g., using Git for dbt projects, naming conventions, documenting assumptions, group debugging sessions.)*  
+* **Shared vs Local Work:**
+  Each member worked on local dbt branches, pushed commits to GitHub, and merged updates after cleaning validation.
+  Used Slack for async collaboration and meeting coordination.
+
+* **Best Practices Learned:**
+
+  * Commit frequently and pull before push to avoid conflicts
+  * Use consistent naming conventions (`stg_`, `fact_`, `dim_`)
+  * Define schema.yml and sources.yml for better lineage in dbt docs
+  * Test and document every dbt model layer
 
 ---
 
 ## 5. Business Questions & Insights
 
-- **Business Questions Explored:**  
-  1. *(Example: Who are the top customers by revenue?)*  
-  2. *(Example: What factors contribute to student dropout?)*  
-  3. *(Example: Which genres/actors perform best in ratings?)*  
+* **Business Questions Explored:**
 
-- **Dashboards / Queries:**  
-  *(Add screenshots, SQL snippets, or summaries of dashboards created in Metabase.)*  
+  1. What are the most frequently reordered products?
+  2. Which departments or aisles have the highest reorder ratio?
+  3. What is the average reorder frequency per customer?
+  4. What time of day and day of week are most orders placed?
 
-- **Key Insights:**  
-  - *(Highlight 1–2 interesting findings. Example: “Rock was the top genre in North America, while Latin genres dominated in South America.”)*  
+* **Dashboards / Queries:**
+
+  * Built interactive dashboards in **Metabase** connected to the ClickHouse mart layer
+  * Aggregated data from fact tables to show purchase trends by time, product, and user behavior
+
+* **Key Insights:**
+
+  * Majority of orders occur during weekdays, peaking in late afternoons
+  * Specific aisles (produce, dairy) show high reorder ratios
+  * Repeat customers represent a large share of total orders
 
 ---
 
 ## 6. Key Learnings
 
-- **Technical Learnings:**  
-  *(E.g., SQL joins, window functions, dbt builds/tests, schema design.)*  
+* **Technical Learnings:**
 
-- **Team Learnings:**  
-  *(E.g., collaboration in shared environments, version control, importance of documentation.)*  
+  * dbt project structure and schema testing
+  * YAML-driven documentation and tests
+  * Basic ClickHouse–dbt integration setup
+  * Use of `dbt docs generate` for automated documentation
 
-- **Real-World Connection:**  
-  *(How this exercise relates to actual data engineering workflows in industry.)*  
+* **Team Learnings:**
+
+  * Effective collaboration using GitHub and Slack
+  * Version control and multi-environment workflow management
+  * Clarity gained from consistent model naming and modular SQL
+
+* **Real-World Connection:**
+  Mirrors how real data teams maintain layered data warehouses with CI/CD and documentation standards using dbt, Airflow, and BI tools.
 
 ---
 
 ## 7. Future Improvements
 
-- **Next Steps with More Time:**  
-  *(E.g., add orchestration with Airflow/Prefect, implement testing, optimize queries, handle larger datasets.)*  
+* **Next Steps with More Time:**
 
-- **Generalization:**  
-  *(How this workflow could be applied to other datasets or business domains.)*  
+  * Add orchestration using Airflow or Prefect
+  * Include data validation via Great Expectations or Soda
+  * Automate nightly ETL runs
+  * Expand dashboards to include product affinity and retention analytics
 
----
+* **Generalization:**
 
-## 📢 Presentation Tips
-
-- Keep it **5–10 minutes**, like a project walkthrough.  
-- Use **diagrams, screenshots, and SQL snippets**.  
-- Focus on both **technical process** and **business insights**.  
-- End with your **key learnings and future improvements**.  
-- For other documentation tips. Read [this](TECHNICAL-DOCS.md).
+  * The same workflow can be applied to e-commerce, retail, or supply chain datasets following the medallion (raw-clean-mart) architecture.
 
 ---
 
-✅ By filling this template, your group will produce a professional-style project guide **just like real data engineers** — clear, structured, and insight-driven.
+## 📚 Reference Links
+
+* 📊 **Datasource:** [Kaggle – Instacart Market Basket Analysis](https://www.kaggle.com/datasets/psparks/instacart-market-basket-analysis)
+* 📖 **Data Dictionary:** [RPubs – Instacart8](https://rpubs.com/yongks/instacart8)
+* 🧱 **DBT Documentation Guide:** [DBT-TEST-DOC-GRP3.md](https://github.com/margo-py/ftw-instacart-dataset-grp3/blob/main/DBT-TEST-DOC-GRP3.md)
+* 🧰 **Tools Used:** `dbt`, `dlt`, `DBeaver`, `dbdiagram`, `Metabase`, `Docker`, `GitHub`
+
