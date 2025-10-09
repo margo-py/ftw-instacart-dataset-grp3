@@ -1,39 +1,34 @@
-# version: 2
+version: 2
 
-# models:
-#   - name: mpg_standardized
-#     description: "Standardized Auto MPG (typed + trimmed) loaded from raw.autompg___cars"
-#     columns:
-#       - name: mpg
-#         description: "Miles per gallon"
-#         tests:
-#           - not_null
+models:
+  - name: stg_grp3_instacart_orders
+    columns:
+      - name: order_id
+        tests: [not_null, unique]
+      - name: user_id
+        tests: [not_null]
 
-#       - name: cylinders
-#         description: "Cylinder count"
-#         tests:
-#           - not_null
-#           - accepted_values:
-#               values: [3, 4, 5, 6, 8]
+  - name: stg_grp3_instacart_products
+    columns:
+      - name: product_id
+        tests: [not_null, unique]
 
-#       - name: displacement
-#         tests: [not_null]
+  - name: stg_grp3_instacart_aisles
+    columns:
+      - name: aisle_id
+        tests: [not_null, unique]
 
-#       - name: weight
-#         tests: [not_null]
+  - name: stg_grp3_instacart_departments
+    columns:
+      - name: department_id
+        tests: [not_null, unique]
 
-#       - name: acceleration
-#         tests: [not_null]
+  - name: stg_grp3_instacart_order_products_prior
+    columns:
+      - name: order_id
+        tests: [not_null]
 
-#       - name: model_year
-#         tests: [not_null]
-
-#       - name: origin
-#         description: "Country of origin"
-#         tests:
-#           - not_null
-#           - accepted_values:
-#               values: ["usa", "europe", "japan"]
-
-#       - name: make
-#         description: "Vehicle make/model (string)"
+  - name: stg_grp3_instacart_order_products_train
+    columns:
+      - name: order_id
+        tests: [not_null]

@@ -35,5 +35,4 @@ cleaned as (
      and lower(trim(eval_set)) in ('prior','train','test')
 )
 
-
 select * from cleaned

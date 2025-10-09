@@ -1,15 +1,37 @@
-# version: 2
+version: 2
 
-# models:
-#   - name: cylinders_by_origin
-#     description: "Mart: average cylinders and row counts by origin"
-#     columns:
-#       - name: origin
-#         tests:
-#           - not_null
-#           - accepted_values:
-#               values: ["usa", "europe", "japan"]
-#       - name: avg_cylinders
-#         description: "Average cylinders by origin"
-#       - name: n
-#         description: "Rowcount by origin"
+models:
+  - name: grp3_instacart_fact_orders
+    columns:
+      - name: order_id
+        tests: [not_null, unique]
+
+  - name: grp3_instacart_fact_order_products
+    columns:
+      - name: order_id
+        tests: [not_null]
+
+  - name: grp3_instacart_dim_users
+    columns:
+      - name: user_id
+        tests: [not_null, unique]
+
+  - name: grp3_instacart_dim_products
+    columns:
+      - name: product_id
+        tests: [not_null, unique]
+
+  - name: grp3_instacart_dim_aisles
+    columns:
+      - name: aisle_id
+        tests: [not_null, unique]
+
+  - name: grp3_instacart_dim_departments
+    columns:
+      - name: department_id
+        tests: [not_null, unique]
+
+  - name: grp3_instacart_dim_time
+    columns:
+      - name: order_dow
+      - name: order_hour_of_day
