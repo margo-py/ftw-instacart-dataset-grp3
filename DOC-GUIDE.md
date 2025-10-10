@@ -694,7 +694,6 @@ In our group, we implemented **two types of data quality checks**:
   * PASS/FAIL summary for quick monitoring
   * Referential integrity verification across all dimensions
 
----
 
 
 
