@@ -20,8 +20,6 @@ models:
 
   - name: grp3_instacart_fact_order_products
     columns:
-      - name: order_product_id
-        tests: [not_null, unique]
       - name: order_id
         tests:
           - not_null
@@ -30,7 +28,7 @@ models:
               field: order_id
       - name: product_id
         tests:
-          - not_null
+          - [not_null, unique]
           - relationships:
               to: ref('grp3_instacart_dim_products')
               field: product_id
@@ -39,6 +37,15 @@ models:
     columns:
       - name: user_id
         tests: [not_null, unique]
+      - name: customer_segment
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['High Frequency', 'Medium Frequency', 'Regular']
+        name: loyalty_tier
+        tests:
+          - accepted_values:
+              values: ['Very Loyal', 'Loyal', 'Moderate']
 
   - name: grp3_instacart_dim_products
     columns:
