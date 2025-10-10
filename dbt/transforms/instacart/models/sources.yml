@@ -3,7 +3,7 @@ version: 2
 sources:
   - name: raw
     schema: raw
-
+    database: raw
     tables:
       - name: raw___insta_aisles
       - name: raw___insta_departments

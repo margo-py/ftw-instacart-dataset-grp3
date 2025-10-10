@@ -6,7 +6,7 @@
 --     CAST(p.aisle_id AS integer) AS aisle_id,
 --     CAST(p.department_id AS integer) AS department_id
 -- FROM {{ ref('stg_grp3_instacart_products') }} p
-{{ config(materialized='table', schema='mart', engine='mergetree()', order_by='product_id') }}
+{{ config(materialized='table', schema='mart', order_by='product_id') }}
 
 select
     cast(p.product_id as integer) as product_id,

@@ -1,4 +1,4 @@
-{{ config(materialized='table', schema='mart', engine='mergetree()', order_by='order_id') }}
+{{ config(materialized='table', schema='mart', order_by='order_id') }}
 
 select
     cast(o.order_id as integer) as order_id,

@@ -1,4 +1,4 @@
-{{ config(materialized='table', schema='mart', engine='mergetree()', order_by='tuple()') }}
+{{ config(materialized='table', schema='mart', order_by='tuple()') }}
 
 with user_metrics as (
     select 

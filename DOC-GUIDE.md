@@ -417,7 +417,7 @@
 
 * **Star Schema Design:**
 
-  ![ERD](./instacart/Instacart_Star_Schema.png)
+  ![ERD](https://github.com/margo-py/ftw-instacart-dataset-grp3/blob/main/dbt/transforms/instacart/Instacart%20Star%20Schema.png?raw=true)
 
   * **A. Dimension Tables (5):**
 
@@ -628,9 +628,79 @@
   * Creating correct primary/foreign key mappings in ClickHouse via dbt
   * Normalizing redundant user and order-level data for clean joins
 
+
+
+## 4. Data Quality Checking
+
+In our group, we implemented **two types of data quality checks**:
+
+1. **`schema.yml` tests** — *automated dbt-native checks*
+
+   * Focused on **constraints** like:
+
+     * `not_null`
+     * `unique`
+     * `relationships`
+   * Great for enforcing model-level data integrity.
+
+2. **`_data_sanity_check.sql` files** — *manual analytical checks*
+
+   * SQL models that summarize DQ metrics in a table
+   * Provide **counts**, **descriptions**, and **PASS/FAIL** statuses
+   * Ideal for **Metabase dashboards** and ongoing DQ monitoring.
+
 ---
 
-## 4. Collaboration & Setup
+### 1. Schema YAML Quality Check
+
+- 📂 [Clean Schema YML - Group Github Repository](https://github.com/margo-py/ftw-instacart-dataset-grp3/blob/main/dbt/transforms/instacart/models/clean/schema.yml)
+- 📂 [Mart Schema YML - Group Github Repository](https://github.com/margo-py/ftw-instacart-dataset-grp3/blob/main/dbt/transforms/instacart/models/mart/schema.yml)
+
+
+
+### 2. SQL Manual Sanity Check
+
+#### **1️⃣ RAW Layer – `stg_grp3_data_sanity_check.sql`**
+
+* **Purpose:** Verify raw source files are complete and correctly loaded.
+* **Checks done:**
+
+  * Row count per source table
+  * Null or blank key fields (IDs, names)
+  * Duplicate row detection
+  * Uniqueness of primary keys (`aisle_id`, `product_id`, etc.)
+
+---
+
+#### **2️⃣ CLEAN Layer – Staging & Normalized Models**
+
+* **Purpose:** Ensure transformation consistency before loading to mart.
+* **Checks done:**
+
+  * Data type conversions are valid
+  * Foreign key mappings (aisle → department, orders → users)
+  * Removed invalid or duplicate records
+  * Structural and referential integrity validation
+
+---
+
+#### **3️⃣ MART Layer – `grp3_instacart_data_sanity_check.sql`**
+
+* **Purpose:** Validate final analytical tables for accuracy and relationships.
+* **Checks done:**
+
+  * `not_null`, `unique`, and `relationship` tests for all dims/facts
+  * Domain validation (`reordered` only 0 or 1)
+  * PASS/FAIL summary for quick monitoring
+  * Referential integrity verification across all dimensions
+
+---
+
+
+
+---
+
+## 5. Collaboration & Setup
 
 * **Task Splitting:**
 
@@ -651,7 +721,7 @@
 
 ---
 
-## 5. Business Questions & Insights
+## 6. Business Questions & Insights
 
 * **Business Questions Explored:**
 
@@ -673,7 +743,7 @@
 
 ---
 
-## 6. Key Learnings
+## 7. Key Learnings
 
 * **Technical Learnings:**
 
@@ -693,7 +763,7 @@
 
 ---
 
-## 7. Future Improvements
+## 8. Future Improvements
 
 * **Next Steps with More Time:**
 

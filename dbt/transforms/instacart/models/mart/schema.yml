@@ -33,6 +33,7 @@ models:
               to: ref('grp3_instacart_dim_products')
               field: product_id
 
+
   - name: grp3_instacart_dim_users
     columns:
       - name: user_id
@@ -78,7 +79,7 @@ models:
     columns:
       - name: time_id
         tests: [not_null, unique]
-      - name: hour
+      - name: order_hour_of_day
         tests: [not_null]
-      - name: day_of_week
+      - name: order_dow
         tests: [not_null]

@@ -1,4 +1,4 @@
-{{ config(materialized='table', schema='mart', engine='mergetree()', order_by='tuple()') }}
+{{ config(materialized='table', schema='mart', order_by='tuple()') }}
 
 select 
     cast(row_number() over () as integer) as time_id,

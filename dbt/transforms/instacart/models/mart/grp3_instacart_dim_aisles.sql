@@ -4,7 +4,7 @@
 --     aisle_id,
 --     aisle AS aisle_name
 -- FROM {{ ref('stg_grp3_instacart_aisles') }}
-{{ config(materialized='table', schema='mart', engine='mergetree()', order_by='aisle_id') }}
+{{ config(materialized='table', schema='mart', order_by='aisle_id') }}
 
 select
     cast(a.aisle_id as integer) as aisle_id,
