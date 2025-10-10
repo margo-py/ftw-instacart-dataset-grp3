@@ -12,7 +12,7 @@
   Transform the normalized Instacart dataset (OLTP-style) into a **dimensional star schema** for analytics — applying dbt for data cleaning, modeling, and testing, and generating documentation for BI use.
 
 * **Team Setup:**
-  Group 3 — collaborative setup, with members **Mikay**, **Royce**, **Pau**, **Marj**, and **Bianca**.
+  Group 3 — collaborative setup, with members  **Royce**, **Pau**, **Marj**, **Bianca**, and **Mikay**,.
   Work was done both individually and collaboratively with async updates via Slack and GitHub.
 
 * **Environment Setup:**
@@ -417,6 +417,8 @@
 
 * **Star Schema Design:**
 
+  ![ERD](./instacart/Instacart_Star_Schema.png)
+
   * **A. Dimension Tables (5):**
 
     1. `grp3_instacart_dim_aisles`
@@ -617,6 +619,8 @@
         on o.order_dow = t.order_dow
       and o.order_hour_of_day = t.order_hour_of_day
     ```
+
+
 * **Challenges / Tradeoffs:**
 
   * Handling missing `days_since_prior_order` values
@@ -630,11 +634,9 @@
 
 * **Task Splitting:**
 
-  * Mikay — Coordination, data cleaning, dbt documentation setup
-  * Royce — Fact & dimension modeling, data testing integration
-  * Pau — Data cleaning & validation
-  * Marj — Schema review & Metabase visualization
-  * Bianca — Table cleaning and joins for product dimension
+  All team members were collaboratively in charge of supporting each other across all tasks — from data cleaning and modeling to documentation and visualization. 
+  
+  Coordination was done through two scheduled meetings every Tuesday and Thursday on Slack, along with follow-up huddles, chat sessions, and continuous updates in the shared repository and Google Docs. Communication and progress tracking were maintained through the main Slack channel to ensure alignment and transparency.
 
 * **Shared vs Local Work:**
   Each member worked on local dbt branches, pushed commits to GitHub, and merged updates after cleaning validation.
