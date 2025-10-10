@@ -12,7 +12,7 @@
   Transform the normalized Instacart dataset (OLTP-style) into a **dimensional star schema** for analytics — applying dbt for data cleaning, modeling, and testing, and generating documentation for BI use.
 
 * **Team Setup:**
-  Group 3 — collaborative setup, with members **Mikay**, **Royce**, **Pau**, **Marj**, and **Bianca**.
+  Group 3 — collaborative setup, with members  **Royce**, **Pau**, **Marj**, **Bianca**, and **Mikay**,.
   Work was done both individually and collaboratively with async updates via Slack and GitHub.
 
 * **Environment Setup:**
@@ -417,17 +417,209 @@
 
 * **Star Schema Design:**
 
-  * **Fact Tables:**
+  ![ERD](./instacart/Instacart_Star_Schema.png)
 
-    * `grp3_instacart_fact_orders`
-    * `grp3_instacart_fact_order_products`
-  * **Dimension Tables:**
+  * **A. Dimension Tables (5):**
 
-    * `grp3_instacart_dim_users`
-    * `grp3_instacart_dim_products`
-    * `grp3_instacart_dim_aisles`
-    * `grp3_instacart_dim_departments`
-    * `grp3_instacart_dim_time`
+    1. `grp3_instacart_dim_aisles`
+    2. `grp3_instacart_dim_departments`
+    3. `grp3_instacart_dim_products`
+    4. `grp3_instacart_dim_time`
+    5. `grp3_instacart_dim_users`
+
+  * **B. Fact Tables (2):**
+
+    1. `grp3_instacart_fact_order_products`
+    2. `grp3_instacart_fact_orders`
+    
+
+  ### Breakdown of Dimensional modeling tables
+  #### A. Dimension Tables
+
+  1. `grp3_instacart_dim_aisles.sql` -> aisles dimension
+
+    ```sql
+    {{ config(materialized='table', schema='mart', engine='mergetree()', order_by='aisle_id') }}
+
+    select
+        cast(a.aisle_id as integer) as aisle_id,
+        trim(a.aisle) as aisle_name,
+        cast(ad.department_id as integer) as department_id
+    from {{ ref('stg_grp3_instacart_aisles') }} as a
+    left join {{ ref('stg_nrml_grp3_instacart_aisle_dept_map') }} as ad
+        on a.aisle_id = ad.aisle_id
+    ```
+
+
+  2. `grp3_instacart_dim_departments.sql` -> departments dimension
+
+    ```sql
+    {{ config(materialized='table', schema='mart', engine='mergetree()', order_by='department_id') }}
+
+    select
+        cast(department_id as integer) as department_id,
+        trim(department) as department_name
+    from {{ ref('stg_grp3_instacart_departments') }}
+    ```
+
+
+  3. `grp3_instacart_dim_products.sql` -> products dimension
+
+    ```sql
+    {{ config(materialized='table', schema='mart', engine='mergetree()', order_by='product_id') }}
+
+    select
+        cast(p.product_id as integer) as product_id,
+        trim(p.product_name) as product_name,
+        cast(p.aisle_id as integer) as aisle_id,
+        a.department_id as department_id
+    from {{ ref('stg_nrml_grp3_instacart_product_details') }} as p
+    left join {{ ref('grp3_instacart_dim_aisles') }} as a
+        on p.aisle_id = a.aisle_id
+    ```
+
+  4. `grp3_instacart_dim_time.sql` -> time dimension
+
+    ```sql
+    {{ config(materialized='table', schema='mart', engine='mergetree()', order_by='tuple()') }}
+
+    select 
+        cast(row_number() over () as integer) as time_id,
+        cast(order_dow as integer) as order_dow,
+        case 
+            when order_dow = 0 then 'sunday'
+            when order_dow = 1 then 'monday'
+            when order_dow = 2 then 'tuesday'
+            when order_dow = 3 then 'wednesday'
+            when order_dow = 4 then 'thursday'
+            when order_dow = 5 then 'friday'
+            when order_dow = 6 then 'saturday'
+            else 'unknown'
+        end as day_name,
+        cast(order_hour_of_day as integer) as order_hour_of_day,
+        case 
+            when order_hour_of_day between 0 and 5 then 'late night'
+            when order_hour_of_day between 6 and 11 then 'morning'
+            when order_hour_of_day between 12 and 17 then 'afternoon'
+            when order_hour_of_day between 18 and 21 then 'evening'
+            else 'late night'
+        end as time_of_day,
+        case when order_dow in (0, 6) then 1 else 0 end as is_weekend
+    from (
+        select distinct
+            order_dow,
+            order_hour_of_day
+        from {{ ref('stg_nrml_grp3_instacart_order_details') }}
+        where order_dow is not null
+    )
+    ```
+
+  5. `grp3_instacart_dim_users.sql` -> users dimension
+
+    ```sql
+    {{ config(materialized='table', schema='mart', engine='mergetree()', order_by='tuple()') }}
+
+    with user_metrics as (
+        select 
+            user_id,
+            count(distinct order_id) as total_orders,
+            round(avg(days_since_prior_order), 2) as avg_days_between_orders
+        from {{ ref('stg_nrml_grp3_instacart_order_details') }}
+        where eval_set = 'prior'
+        group by user_id
+    ),
+    user_products as (
+        select 
+            o.user_id,
+            count(*) as total_products_ordered,
+            count(distinct op.product_id) as unique_products_ordered,
+            sum(op.reordered) as total_reorders
+        from {{ ref('stg_nrml_grp3_instacart_order_details') }} as o
+        inner join {{ ref('stg_grp3_instacart_order_products_prior') }} as op
+            on o.order_id = op.order_id
+        group by o.user_id
+    )
+    select 
+        um.user_id,
+        um.total_orders,
+        um.avg_days_between_orders,
+        coalesce(up.total_products_ordered, 0) as total_products_ordered,
+        coalesce(up.unique_products_ordered, 0) as unique_products_ordered,
+        round(
+            coalesce(up.total_products_ordered, 0) * 1.0 / nullif(um.total_orders, 0),
+            2
+        ) as avg_basket_size,
+        case 
+            when um.total_orders >= 50 then 'high frequency'
+            when um.total_orders >= 20 then 'medium frequency'
+            when um.total_orders >= 10 then 'regular'
+            else 'low frequency'
+        end as customer_segment,
+        case 
+            when coalesce(up.total_reorders, 0) * 1.0 / nullif(up.total_products_ordered, 0) >= 0.7 then 'very loyal'
+            when coalesce(up.total_reorders, 0) * 1.0 / nullif(up.total_products_ordered, 0) >= 0.5 then 'loyal'
+            when coalesce(up.total_reorders, 0) * 1.0 / nullif(up.total_products_ordered, 0) >= 0.3 then 'moderate'
+            else 'exploratory'
+        end as loyalty_tier
+    from user_metrics as um
+    left join user_products as up
+        on um.user_id = up.user_id
+    ```
+  ---
+  #### B. Fact Tables
+  1. `grp3_instacart_fact_order_products.sql` -> fact order products
+
+    ```sql
+    {{ config(materialized='table', schema='mart', engine='mergetree()', order_by='order_id') }}
+
+    select
+        cast(op.order_id as integer) as order_id,
+        p.product_id as product_id,
+        p.aisle_id as aisle_id,
+        p.department_id as department_id,
+        u.user_id as user_id,
+        t.time_id as time_id,
+        cast(op.add_to_cart_order as integer) as add_to_cart_order,
+        cast(op.reordered as integer) as reordered
+    from (
+        select * from {{ ref('stg_grp3_instacart_order_products_prior') }}
+        union all
+        select * from {{ ref('stg_grp3_instacart_order_products_train') }}
+    ) as op
+    left join {{ ref('grp3_instacart_dim_products') }} as p
+        on op.product_id = p.product_id
+    left join {{ ref('stg_nrml_grp3_instacart_order_details') }} as od
+        on op.order_id = od.order_id
+    left join {{ ref('grp3_instacart_dim_users') }} as u
+        on od.user_id = u.user_id
+    left join {{ ref('grp3_instacart_dim_time') }} as t
+        on od.order_dow = t.order_dow
+      and od.order_hour_of_day = t.order_hour_of_day
+    ```
+
+
+  2. `grp3_instacart_fact_orders.sql` -> fact orders
+
+    ```sql
+    {{ config(materialized='table', schema='mart', engine='mergetree()', order_by='order_id') }}
+
+    select
+        cast(o.order_id as integer) as order_id,
+        u.user_id as user_id,
+        t.time_id as time_id,
+        cast(n.order_number as integer) as order_number,
+        trim(o.eval_set) as eval_set,
+        o.days_since_prior_order as days_since_prior_order
+    from {{ ref('stg_nrml_grp3_instacart_order_details') }} as o
+    left join {{ ref('stg_nrml_grp3_instacart_order_number') }} as n
+        on o.order_id = n.order_id
+    left join {{ ref('grp3_instacart_dim_users') }} as u
+        on o.user_id = u.user_id
+    left join {{ ref('grp3_instacart_dim_time') }} as t
+        on o.order_dow = t.order_dow
+      and o.order_hour_of_day = t.order_hour_of_day
+    ```
+
 
 * **Challenges / Tradeoffs:**
 
@@ -442,11 +634,9 @@
 
 * **Task Splitting:**
 
-  * Mikay — Coordination, data cleaning, dbt documentation setup
-  * Royce — Fact & dimension modeling, data testing integration
-  * Pau — Data cleaning & validation
-  * Marj — Schema review & Metabase visualization
-  * Bianca — Table cleaning and joins for product dimension
+  All team members were collaboratively in charge of supporting each other across all tasks — from data cleaning and modeling to documentation and visualization. 
+  
+  Coordination was done through two scheduled meetings every Tuesday and Thursday on Slack, along with follow-up huddles, chat sessions, and continuous updates in the shared repository and Google Docs. Communication and progress tracking were maintained through the main Slack channel to ensure alignment and transparency.
 
 * **Shared vs Local Work:**
   Each member worked on local dbt branches, pushed commits to GitHub, and merged updates after cleaning validation.
