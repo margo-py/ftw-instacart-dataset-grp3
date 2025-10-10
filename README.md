@@ -1,6 +1,4 @@
-
-
-# 📝 Instacart Dataset Group 3
+# 📝 Instacart Dataset ELT Pipeline Documentation Group 3
 
 ## 1. Project Overview
 
