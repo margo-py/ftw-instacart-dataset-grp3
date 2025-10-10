@@ -5,11 +5,35 @@ models:
     columns:
       - name: order_id
         tests: [not_null, unique]
+      - name: user_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('grp3_instacart_dim_users')
+              field: user_id
+      - name: time_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('grp3_instacart_dim_time')
+              field: time_id
 
   - name: grp3_instacart_fact_order_products
     columns:
+      - name: order_product_id
+        tests: [not_null, unique]
       - name: order_id
-        tests: [not_null]
+        tests:
+          - not_null
+          - relationships:
+              to: ref('grp3_instacart_fact_orders')
+              field: order_id
+      - name: product_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('grp3_instacart_dim_products')
+              field: product_id
 
   - name: grp3_instacart_dim_users
     columns:
@@ -20,6 +44,18 @@ models:
     columns:
       - name: product_id
         tests: [not_null, unique]
+      - name: aisle_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('grp3_instacart_dim_aisles')
+              field: aisle_id
+      - name: department_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('grp3_instacart_dim_departments')
+              field: department_id
 
   - name: grp3_instacart_dim_aisles
     columns:
@@ -33,5 +69,9 @@ models:
 
   - name: grp3_instacart_dim_time
     columns:
-      - name: order_dow
-      - name: order_hour_of_day
+      - name: time_id
+        tests: [not_null, unique]
+      - name: hour
+        tests: [not_null]
+      - name: day_of_week
+        tests: [not_null]
