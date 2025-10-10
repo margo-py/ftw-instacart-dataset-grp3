@@ -1,13 +1,17 @@
-
-# 🧭 How to Generate and View dbt Auto-Documentation for the Instacart Project
-
-This guide shows how to **structure your dbt project**, define **models and sources**, and **generate browser-based documentation** automatically using `dbt docs`.
+Excellent — your base version is already strong and clear ✅
+Here’s the **improved and professionalized version** — still short and readable but with smoother structure, better flow, and added clarity on **testing + DAG viewing** (so it matches real-world dbt documentation standards).
 
 ---
 
-## 📂 1. Project Folder Structure
+# 🧭 Instacart Project — Auto-Documentation & Data Testing Guide
 
-Your repo should look like this:
+This guide explains how to **structure the dbt project**, **define models and sources**, **run tests**, and **generate browser-based documentation** (with DAG visualization).
+
+---
+
+## 📁 1. Project Folder Structure
+
+Your project should follow this layout:
 
 ```
 ftw-instacart-dataset-group3/
@@ -37,15 +41,14 @@ ftw-instacart-dataset-group3/
 │           │       ├── grp3_instacart_dim_time.sql
 │           │       └── schema.yml
 │           ├── macros/
-│           └── target/ (auto-generated)
-``` 
-- This is to be edited since modifications in the schema is still ongoing.
+│           └── target/  (auto-generated)
+```
+
+> 💡 *You can adjust this structure if schema updates or model refinements are still in progress.*
 
 ---
 
-## ⚙️ 2. dbt Project Configuration
-
-`dbt_project.yml`
+## ⚙️ 2. Project Configuration (`dbt_project.yml`)
 
 ```yaml
 name: "instacart"
@@ -66,9 +69,13 @@ models:
       +materialized: view
 ```
 
+This configuration tells dbt where to look for models, and how to materialize each layer.
+
 ---
 
-## 🧩 3. Define Your Sources (`models/sources/sources.yml`)
+## 🧩 3. Source Definition (`models/sources/sources.yml`)
+
+These define your **raw data inputs** — the “Bronze Layer” in the pipeline.
 
 ```yaml
 version: 2
@@ -86,15 +93,17 @@ sources:
       - name: raw__insta_order_products_train
 ```
 
-Your staging models (`stg_`) will reference these like:
+Used inside staging models as:
 
 ```sql
-select * from {{ source('raw_instacart', 'raw__insta_orders') }}
+SELECT * FROM {{ source('raw_instacart', 'raw__insta_orders') }}
 ```
 
 ---
 
-## 🧱 4. Define Clean Models (`models/clean/schema.yml`)
+## 🧱 4. Clean Models (`models/clean/schema.yml`)
+
+The **Silver Layer**, where data is cleaned and standardized.
 
 ```yaml
 version: 2
@@ -133,9 +142,13 @@ models:
         tests: [not_null]
 ```
 
+Each column test checks for **data integrity** — no nulls, duplicates, or broken relationships.
+
 ---
 
-## 🧮 5. Define Mart Models (`models/mart/schema.yml`)
+## 🏗️ 5. Mart Models (`models/mart/schema.yml`)
+
+The **Gold Layer**, where final business-ready datasets are stored.
 
 ```yaml
 version: 2
@@ -177,17 +190,13 @@ models:
       - name: order_hour_of_day
 ```
 
+These are **fact** and **dimension** tables that form the star schema for analytics and BI dashboards.
+
 ---
 
-## 🧠 6. Run & Build Models
+## 🧪 6. Data Testing
 
-```bash
-docker compose --profile jobs run --rm \
-  -w /workdir/transforms/instacart \
-  dbt run --profiles-dir /workdir/transforms/instacart
-```
-
-Optionally test:
+Run all data tests:
 
 ```bash
 docker compose --profile jobs run --rm \
@@ -195,9 +204,22 @@ docker compose --profile jobs run --rm \
   dbt test --profiles-dir /workdir/transforms/instacart
 ```
 
+**Types of tests used:**
+
+| Test              | Purpose                        |
+| ----------------- | ------------------------------ |
+| `not_null`        | Ensures no empty values        |
+| `unique`          | Detects duplicate IDs          |
+| `accepted_values` | Validates day/hour ranges      |
+| `relationships`   | Confirms referential integrity |
+
+All test results are saved under `target/` and visible inside **dbt Docs → Data Tests**.
+
 ---
 
-## 📖 7. Generate Documentation
+## 📚 7. Generate Documentation
+
+Build the documentation site:
 
 ```bash
 docker compose --profile jobs run --rm \
@@ -205,7 +227,7 @@ docker compose --profile jobs run --rm \
   dbt docs generate --profiles-dir /workdir/transforms/instacart --target local --static
 ```
 
-Output:
+Output file:
 
 ```
 dbt/transforms/instacart/target/static_index.html
@@ -213,30 +235,51 @@ dbt/transforms/instacart/target/static_index.html
 
 ---
 
-## 🌐 8. View in Browser
+## 🌐 8. Serve and View Docs (Interactive DAG)
 
-**macOS**
-
-```bash
-open dbt/transforms/instacart/target/static_index.html
-```
-
-**Linux**
+Serve interactive docs locally:
 
 ```bash
-xdg-open dbt/transforms/instacart/target/static_index.html
+docker compose --profile jobs run --rm \
+  -p 8080:8080 \
+  -w /workdir/transforms/instacart \
+  dbt docs serve --profiles-dir /workdir/transforms/instacart --target local --port 8080 --host 0.0.0.0
 ```
+
+Then visit:
+👉 **[http://localhost:8080](http://localhost:8080)**
+
+### 🧩 Viewing the DAG
+
+In the docs UI:
+
+1. Click the **“Graph”** or **“Lineage”** icon in the top-right corner.
+2. You’ll see the full model flow:
+
+   ```
+   raw__insta_* → stg_grp3_instacart_* → grp3_instacart_fact_* / dim_*
+   ```
+3. Each layer is color-coded:
+
+   * 🟢 **Raw** — source tables
+   * 🔵 **Clean** — staging models
+   * 🟣 **Mart** — analytics models
+
+This confirms your model dependencies and the full **data lineage**.
 
 ---
 
-## ✅ 9. Summary
+## ✅ 9. Workflow Summary
 
-| Step | Purpose           | Command                               |
-| ---- | ----------------- | ------------------------------------- |
-| 1    | Start environment | `docker compose --profile core up -d` |
-| 2    | Build models      | `dbt run`                             |
-| 3    | Test models       | `dbt test`                            |
-| 4    | Generate docs     | `dbt docs generate`                   |
-| 5    | Open docs         | `open target/static_index.html`       |
+| Step | Purpose               | Command                               |
+| ---- | --------------------- | ------------------------------------- |
+| 1    | Start services        | `docker compose --profile core up -d` |
+| 2    | Build models          | `dbt run`                             |
+| 3    | Run tests             | `dbt test`                            |
+| 4    | Generate docs         | `dbt docs generate`                   |
+| 5    | Serve docs (view DAG) | `dbt docs serve --port 8080`          |
+| 6    | Open in browser       | `http://localhost:8080`               |
 
 ---
+
+

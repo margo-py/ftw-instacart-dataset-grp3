@@ -1,33 +1,25 @@
 {{ config(materialized="table", schema="clean") }}
-
-WITH source_data AS (
-    SELECT 
-        product_id,
-        product_name,
-        aisle_id,
-        department_id
-    FROM {{ source('raw', 'raw___insta_products') }}
+with source as (
+    select 
+        cast(product_id as integer) as product_id,
+        cast(aisle_id as integer) as aisle_id,
+        cast(department_id as integer) as department_id,
+        cast(product_name as varchar(64)) as product_name
+    from {{ source('raw', 'raw___insta_products') }}
 ),
 
-cleaned AS (
-    SELECT 
+cleaned as (
+    select
+        product_id,
+        lower(trim(product_name)) as product_name, --Easier to query if all lowercase
+        aisle_id,
+        department_id,
 
-        TRIM(product_id) AS product_id,
-        
-        TRIM(product_name) AS product_name,
-        
-        TRIM(aisle_id) AS aisle_id,
-        TRIM(department_id) AS department_id,
-        
-        now() AS cleaned_at
-        
-    FROM source_data
-    WHERE 
-
-        product_id IS NOT NULL 
-        AND TRIM(product_id) != ''
-        AND product_name IS NOT NULL
-        AND TRIM(product_name) != ''
+    from source
+    where product_id is not null
+      and product_name is not null
+      and trim(product_name) != ''
 )
 
-SELECT * FROM cleaned
+
+select * from cleaned
