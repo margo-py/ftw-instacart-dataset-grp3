@@ -1,5 +1,7 @@
 # 📝 Instacart Dataset ELT Pipeline Documentation Group 3
 
+![Instacart Lineage Graph](https://github.com/margo-py/ftw-instacart-dataset-grp3/blob/main/dbt/transforms/instacart/Instacart%20Lineage%20Graph.png?raw=true)
+
 ## 1. Project Overview
 
 * **Dataset Used:**
@@ -10,7 +12,7 @@
   Transform the normalized Instacart dataset (OLTP-style) into a **dimensional star schema** for analytics — applying dbt for data cleaning, modeling, and testing, and generating documentation for BI use.
 
 * **Team Setup:**
-  Group 3 — collaborative setup, with members  **Royce**, **Pau**, **Marj**, **Bianca**, and **Mikay**.
+  Group 3 — **Royce**, **Pau**, **Marj**, **Bianca**, and **Mikay**.
   Work was done both individually and collaboratively with async updates via Slack and GitHub.
 
 * **Environment Setup:**
@@ -286,6 +288,22 @@
     from cleaned
     ```
 
+      ### **`days_since_prior_order` Cleaning Logic**
+
+      Invalid or meaningless values are standardized to `NULL` in `clean.stg_grp3_instacart_orders` using:
+
+      | Condition               | Action       | Rationale                                      |
+      | ----------------------- | ------------ | ---------------------------------------------- |
+      | `'nan'`, `'null'`, `''` | → `NULL`     | Placeholder or empty strings not meaningful    |
+      | Non-numeric (NaN)       | → `NULL`     | Corrupt or invalid entries                     |
+      | `0`                     | → `NULL`     | Zero days considered invalid per business rule |
+      | Valid number            | → Keep value | Represents legitimate interval                 |
+                
+
+
+      **Result:**
+      `NULL`s increase from raw (≈206K) → clean (≈274K) because invalid, zero, or non-numeric values are intentionally nullified per business rule.
+
 
 
     6. `stg_grp3_instacart_products.sql` ->  products cleaning
@@ -327,7 +345,6 @@
     - Create CTe aisle_dept_map and cast data type
     - Group to get unique aisle-department pairs
     - Create CTE to check aisles linked to multiple departments
-    - Filter aisles with more than 1 department
     ```sql
     {{ config(materialized="table", schema="clean") }}
 
@@ -339,15 +356,6 @@
         group by
             aisle_id,
             department_id
-    ),
-
-    aisles_with_multiple_departments as (
-        select
-            aisle_id,
-            count(distinct department_id) as dept_count
-        from {{ ref('stg_grp3_instacart_products') }}
-        group by aisle_id
-        having count(distinct department_id) > 1
     )
 
     select *
@@ -495,13 +503,7 @@
             else 'unknown'
         end as day_name,
         cast(order_hour_of_day as integer) as order_hour_of_day,
-        case 
-            when order_hour_of_day between 0 and 5 then 'late night'
-            when order_hour_of_day between 6 and 11 then 'morning'
-            when order_hour_of_day between 12 and 17 then 'afternoon'
-            when order_hour_of_day between 18 and 21 then 'evening'
-            else 'late night'
-        end as time_of_day,
+
         case when order_dow in (0, 6) then 1 else 0 end as is_weekend
     from (
         select distinct
@@ -653,6 +655,182 @@ In our group, we implemented **two types of data quality checks**:
 
 - 📂 [Clean Schema YML - Group Github Repository](https://github.com/margo-py/ftw-instacart-dataset-grp3/blob/main/dbt/transforms/instacart/models/clean/schema.yml)
 - 📂 [Mart Schema YML - Group Github Repository](https://github.com/margo-py/ftw-instacart-dataset-grp3/blob/main/dbt/transforms/instacart/models/mart/schema.yml)
+
+
+### Clean
+``` sql
+version: 2
+
+models:
+  - name: stg_grp3_instacart_orders
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+          - unique
+      - name: user_id
+        tests:
+          - not_null
+      - name: eval_set
+        tests: 
+          - accepted_values:
+              values: ['prior', 'train', 'test']
+      - name: order_dow
+        tests:
+          - accepted_values:
+              values: [0, 1, 2, 3, 4, 5, 6]
+      - name: order_dow_name
+        tests:
+          - accepted_values:
+              values: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+      - name: order_hour_of_day
+        tests:
+          - accepted_values:
+              values: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+
+  - name: stg_grp3_instacart_products
+    columns:
+      - name: product_id
+        tests:
+          - not_null
+          - unique
+
+  - name: stg_grp3_instacart_aisles
+    columns:
+      - name: aisle_id
+        tests:
+          - not_null
+          - unique
+
+  - name: stg_grp3_instacart_departments
+    columns:
+      - name: department_id
+        tests:
+          - not_null
+          - unique
+
+  - name: stg_grp3_instacart_order_products_prior
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+      - name: product_id
+        tests:
+          - not_null
+
+  - name: stg_grp3_instacart_order_products_train
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+
+```
+
+
+### Mart
+``` sql
+version: 2
+
+models:
+  - name: grp3_instacart_fact_orders
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+          - unique
+      - name: user_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('grp3_instacart_dim_users')
+              field: user_id
+      - name: time_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('grp3_instacart_dim_time')
+              field: time_id
+
+  - name: grp3_instacart_fact_order_products
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('grp3_instacart_fact_orders')
+              field: order_id
+      - name: product_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('grp3_instacart_dim_products')
+              field: product_id
+
+  - name: grp3_instacart_dim_users
+    columns:
+      - name: user_id
+        tests:
+          - not_null
+          - unique
+      - name: customer_segment
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['High_Frequency', 'Medium_Frequency', 'Regular', 'Low_Frequency']
+      - name: loyalty_tier
+        tests:
+          - accepted_values:
+              values: ['Very_Loyal', 'Loyal', 'Moderate', 'Exploratory']
+
+
+  - name: grp3_instacart_dim_products
+    columns:
+      - name: product_id
+        tests:
+          - not_null
+          - unique
+      - name: aisle_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('grp3_instacart_dim_aisles')
+              field: aisle_id
+      - name: department_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('grp3_instacart_dim_departments')
+              field: department_id
+
+  - name: grp3_instacart_dim_aisles
+    columns:
+      - name: aisle_id
+        tests:
+          - not_null
+          - unique
+
+  - name: grp3_instacart_dim_departments
+    columns:
+      - name: department_id
+        tests:
+          - not_null
+          - unique
+
+  - name: grp3_instacart_dim_time
+    columns:
+      - name: time_id
+        tests:
+          - not_null
+          - unique
+      - name: order_hour_of_day
+        tests:
+          - not_null
+      - name: order_dow
+        tests:
+          - not_null
+
+```
+
 
 
 
