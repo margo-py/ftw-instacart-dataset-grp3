@@ -220,7 +220,7 @@ Build the documentation site:
 ```bash
 docker compose --profile jobs run --rm \
   -w /workdir/transforms/instacart \
-  dbt docs generate --profiles-dir /workdir/transforms/instacart --target local --static
+  dbt docs generate --profiles-dir /workdir/transforms/instacart --target remote --static
 ```
 
 Output file:
@@ -239,7 +239,21 @@ Serve interactive docs locally:
 docker compose --profile jobs run --rm \
   -p 8080:8080 \
   -w /workdir/transforms/instacart \
-  dbt docs serve --profiles-dir /workdir/transforms/instacart --target local --port 8080 --host 0.0.0.0
+  dbt docs serve --profiles-dir /workdir/transforms/instacart --target remote --port 8080 --host 0.0.0.0
+```
+
+
+To Update:
+```bash
+#!/bin/bash
+docker compose --profile jobs run --rm \
+  -w /workdir/transforms/instacart \
+  dbt docs generate --profiles-dir /workdir/transforms/instacart --target local &&
+docker compose --profile jobs run --rm \
+  -p 8080:8080 \
+  -w /workdir/transforms/instacart \
+  dbt docs serve --profiles-dir /workdir/transforms/instacart --target remote --host 0.0.0.0 --port 8080
+
 ```
 
 Then visit:
